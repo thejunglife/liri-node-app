@@ -4,18 +4,22 @@ require('dotenv').config()
  *** variables****
  ***************/
 
-const fs = require('./random.txt')
+// const fs = require('./random.txt')
+
 // moment for date change
 const moment = require('moment')
 
 // to be able to fetch OMDB and BandsInTown API
 const axios = require('axios')
 
+// lets me use the spotify npm
+const Spotify = require('node-spotify-api')
+
 // grabs the spotify key from keys.js file
 const keys = require('./keys.js')
 // provides the hidden spotify key....
 // hiding this for now
-// const spotify = new Spotify(keys.spotify)
+const spotify = new Spotify(keys.spotify)
 
 let entry = ''
 
@@ -70,8 +74,21 @@ axios.get(`https://www.omdbapi.com/?apikey=trilogy&t=${entry}`)
     }
   })
   .catch(e => console.log(e))
-// Spotify Function
 
+// Spotify Function
+spotify.search({ type: 'track', query: `${entry}`, limit: 1 })
+  .then(song => {
+    let songs = song.tracks.items[0]
+
+    if (process.argv[2] === 'spotify-this-song') {
+      console.log(` 
+     Artist(s): ${songs.artists[0].name}
+     Song: ${songs.name}
+     Preview Link: ${songs.preview_url}
+     Album: ${songs.album.name}
+      `)
+    }
+  })
 
 // Liri Function
 // fs.readFile('file.txt', 'utf8', (e, data) => {
