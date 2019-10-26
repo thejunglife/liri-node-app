@@ -5,50 +5,32 @@ require('dotenv').config()
  ***************/
 // to be able to read() append() write() files
 const fs = require('fs')
-
 // moment for date change
 const moment = require('moment')
-
 // to be able to fetch OMDB and BandsInTown API
 const axios = require('axios')
-
 // lets me use the spotify npm
 const Spotify = require('node-spotify-api')
-
 // grabs the spotify key from keys.js file
 const keys = require('./keys.js')
 // provides the hidden spotify key....
-// hiding this for now
 const spotify = new Spotify(keys.spotify)
 
 let command = process.argv[2]
-let entry = process.argv[3]
-// let entry = ''
 // better way of taking care of spaces
 
-// let entry = process.argv.slice(3).join()
-// let entry = process.argv[3]
+let put = process.argv.slice(3).join('+')
 
-// include the + when there is a space
-// const nodeArg = process.argv
-// for (var i = 3; i < nodeArg.length; i++) {
-//   if (i > 3 && i < nodeArg.length) {
-//     entry = entry + '+' + nodeArg[i]
-//   } else {
-//     entry += nodeArg[i]
-//   }
-// }
 
 /****************
  *** functions****
  ***************/
 
 // function for Bandsintown Api
-function concertThis () {
-  let concert = process.argv[3]
-axios.get(`https://rest.bandsintown.com/artists/${concert}/events?app_id=codingbootcamp`)
+function concertThis (event) {
+axios.get(`https://rest.bandsintown.com/artists/${event}/events?app_id=codingbootcamp`)
   .then(concert => {
-    if (concert) {
+    if (event) {
       for (let i = 0; i < concert.data.length; i++) {
         console.log(`
      ------------------------------------------
@@ -63,9 +45,9 @@ axios.get(`https://rest.bandsintown.com/artists/${concert}/events?app_id=codingb
   })
   .catch(e => console.log(e))
 }
+
 // function for OMDB
-function movieThis () {
-  let movies = process.argv[3]
+function movieThis (movies) {
 axios.get(`https://www.omdbapi.com/?apikey=trilogy&t=${movies}`)
   .then(movie => {
     if (movies) {
@@ -73,7 +55,7 @@ axios.get(`https://www.omdbapi.com/?apikey=trilogy&t=${movies}`)
    Movie: ${movie.data.Title}
    Release Date: ${movie.data.Year}
    IMDB Rating: ${movie.data.imdbRating}
-   Rotten Tomatoe Rating: ${movie.data.Ratings[1].Value}
+   Rotten Tomatoe Rating: ${ movie.data.Ratings[1].Value }
    Country of Production: ${movie.data.Country}
    Movie Language: ${movie.data.Language}
    ----------------------------------
@@ -81,24 +63,24 @@ axios.get(`https://www.omdbapi.com/?apikey=trilogy&t=${movies}`)
    ----------------------------------
    Actors: ${movie.data.Actors}
    `)
- 
+  //  working after taking this out
+      // Rotten Tomatoe Rating: ${ movie.data.Ratings[1].Value }
+      // after IMDB Rating
 }
     })
     .catch(e => console.log(e))
 }
 
 
-// Spotify Function
-function spotifyThis () {
-  let title = process.argv[3]
-  spotify.search({ type: 'track', query: `${title}`, limit: 1 })
+// Spotify Function working
+function spotifyThis (artist) {
+  spotify.search({ type: 'track', query: `${artist}`, limit: 1 })
     .then(song => {
     // variable to shorten up code
       let songs = song.tracks.items[0]
-
-      if (title) {
+      if (artist) {
         console.log(` 
-     Artist(s): ${songs.artists[0].name}
+     Artist(s): ${ songs.artists[0].name }
      Song: ${songs.name}
      Preview Link: ${songs.preview_url}
      Album: ${songs.album.name}
@@ -110,51 +92,29 @@ function spotifyThis () {
     })
 }
 
-// Liri Function
-// function doThis () {
-//   fs.readFile('random.txt', 'utf8', (e, data) => {
-//     if (e) {
-//       console.log(e)
-//     }
-//     const str = data.replace(/"/g, '').split(',')
-    
-//    str[0] = process.argv[2]
-   
-    
-//     movieThis()
-//   })
-// }
-const doThis = _ => {
+
+const doThis = () => {
   fs.readFile('random.txt', 'utf8', (e, data) => {
     let str = data
     let newStr = str.split(',')
-    
-    
-    let new3 = newStr[1] 
-    
-    
-    new3 = process.argv[3]
-    console.log(new3)
-
+    let com = newStr[0]
+    let ent = newStr[1].replace(/\s/g, '')
+    liriBot(com, ent)
   })
-  
-
 }
-
-
-
-// function commandFunc (command, entry) {
+// 
+function liriBot (command, put) {
   switch (command) {
     case 'concert-this':
-      concertThis()
+      concertThis(put)
       break
 
     case 'movie-this':
-      movieThis()
+      movieThis(put)
       break
 
     case 'spotify-song':
-      spotifyThis()
+      spotifyThis(put)
       break
 
     case 'do-this':
@@ -165,6 +125,6 @@ const doThis = _ => {
       console.log('please enter a command!')
       break
   }
-// }
-// commandFunc(command, entry)
+}
+liriBot(command, put)
 
